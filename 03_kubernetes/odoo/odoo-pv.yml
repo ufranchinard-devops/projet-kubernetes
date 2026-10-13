@@ -4,14 +4,21 @@ metadata:
   name: odoo-pv
   labels:
     env: prod
-    type: local
     app: odoo
 spec:
   capacity:
-    storage: 10Gi
+    storage: 5Gi
   accessModes:
     - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Delete
+  persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   hostPath:
     path: /data-odoo
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - node01

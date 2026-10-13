@@ -13,7 +13,17 @@ spec:
     metadata:
       labels:
         app: odoo
+        env: prod
     spec:
+      initContainers:
+      - name: fix-permissions
+        image: odoo:17.0
+        securityContext:
+          runAsUser: 0
+        command: ["sh", "-c", "chown -R odoo:odoo /var/lib/odoo"]
+        volumeMounts:
+        - name: odoo-data
+          mountPath: /var/lib/odoo
       containers:
       - name: odoo
         image: odoo:17.0
@@ -23,37 +33,22 @@ spec:
             secretKeyRef:
               key: user
               name: odoo-secret
-        - name: PASSWORD 
+        - name: PASSWORD
           valueFrom:
             secretKeyRef:
-              key: password 
-              name: odoo-secret 
-        - name: HOST 
+              key: password
+              name: odoo-secret
+        - name: HOST
           valueFrom:
             configMapKeyRef:
-              key: host 
+              key: host
               name: odoo-cm
-        # resources:
-        #   limits:
-        #     memory: "128Mi"
-        #     cpu: "500m"
         ports:
         - containerPort: 8069
         volumeMounts:
-        - name: odoo-persitent-storage
+        - name: odoo-data
           mountPath: /var/lib/odoo
-        - name: odoo-persitent-storage-odoo
-          mountPath: /etc/odoo
-        - name: odoo-persitent-storage-extras
-          mountPath: /mnt/extra-addons
-      volumes: 
-      - name: odoo-persitent-storage
+      volumes:
+      - name: odoo-data
         persistentVolumeClaim:
           claimName: odoo-pvc
-      - name: odoo-persitent-storage-odoo
-        hostPath: 
-          path: /data-odoo/config
-      - name: odoo-persitent-storage-extras
-        hostPath: 
-          path: /data-odoo/addons
-
